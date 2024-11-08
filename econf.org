@@ -1,0 +1,640 @@
+#+startup: show2levels
+* packages
+** ace-window
+#+begin_src emacs-lisp
+  (use-package ace-window :ensure t
+    :config
+    (global-set-key (kbd "M-o") #'ace-window)
+    (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l ?\;))
+    (setq aw-scope 'frame ))
+#+end_src
+** adoc
+#+begin_src emacs-lisp
+  (use-package adoc-mode :ensure t)
+#+end_src
+** all-the-icons
+#+begin_src emacs-lisp
+  (use-package all-the-icons-completion
+    :ensure t
+    :config
+    (require 'all-the-icons)
+    (all-the-icons-completion-mode))
+#+end_src
+** auto complete
+*** company
+#+BEGIN_SRC emacs-lisp
+  (use-package company
+    :ensure t
+    :config
+    (setq company-idle-delay 0)
+    (setq company-minimum-prefix-lenght 3)
+    (add-hook 'fundamental-mode 'company-mode)
+    (setq company-transformers '(delete-consecutive-dups
+                                 company-sort-by-backend-importance))
+    (global-company-mode 1))
+
+  (use-package company-c-headers
+    :ensure t
+    :config
+    (setq company-c-headers-path-system '("/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include" "/usr/local/include" "/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include-fixed" "/usr/include"))
+    (add-to-list 'company-backends 'company-c-headers))
+
+#+END_SRC
+*** eglot
+#+begin_src emacs-lisp
+  (with-eval-after-load 'eglot
+    (setq eglot-autoshutdown t)
+    (add-to-list 'eglot-server-programs
+                 '((c-mode c++-mode)
+                   . ("clangd"
+                      "-j=24"
+                      "--log=error"
+                      "--malloc-trim"
+                      "--background-index"
+                      "--completion-style=detailed"
+                      "--pch-storage=memory"
+                      "--header-insertion=never"
+                      "--header-insertion-decorators=0")))
+    (add-to-list 'eglot-server-programs
+                 '((rust-ts-mode rust-mode) .
+                   ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
+    (keymap-set eglot-mode-map "C-c h" #'eglot-code-actions))
+
+
+
+  (add-hook 'c-mode-hook #'eglot-ensure)
+  (add-hook 'c++-mode-hook #'eglot-ensure)
+  (add-hook 'rustic-mode-hook   #'eglot-ensure)
+  ;; (setq rustic-mode-hook  (list #'eglot-ensure))
+#+end_src
+** avy
+#+BEGIN_SRC emacs-lisp
+  (use-package avy
+    :ensure t
+    :config
+    (global-set-key "\M-s" 'avy-goto-char)
+    (global-set-key "\M-j" 'avy-pop-mark))
+#+END_SRC
+** bs
+#+begin_src emacs-lisp
+  (setq bs-must-always-show-regexp (rx (or "*Geiser Guile REPL*" "*eshell*" "*scratch*")))
+#+end_src
+** denote
+#+begin_src emacs-lisp
+  (use-package denote
+    :ensure t
+    :config
+    (setq denote-directory (expand-file-name "~/denote"))
+    (setq denote-known-keywords '("emacs" "scheme" "uni" "c"))
+    (global-set-key (kbd "C-c n") #'denote)
+    (add-hook 'dired-mode-hook #'denote-dired-mode))
+#+end_src
+** dirvish
+#+begin_src emacs-lisp
+  (defun my-dirvish-find-file-other-frame ()
+    "Open the selected file in a new frame."
+    (interactive)
+    (let ((filename (dired-get-file-for-visit)))
+      (if filename
+          (find-file-other-frame filename))))
+
+  (use-package dirvish
+    :ensure t
+    :config
+    (dirvish-override-dired-mode)
+    (add-to-list 'dirvish-attributes 'all-the-icons)
+    (add-to-list 'dirvish-attributes 'collapse)
+    (global-set-key [f7] 'dirvish-side)
+    (setq dired-listing-switches "-l")
+    :bind
+    (([f7] . dirvish-side)
+     :map dirvish-mode-map
+
+     ("TAB" . dirvish-subtree-toggle)
+     ("f"   . my-dirvish-find-file-other-frame)
+     ("C-c C-n" . dired-create-empty-file)
+     ("C-c C-d" . dired-create-directory)))
+  ;;dirvish-attributes
+
+
+#+end_src
+** eat
+#+begin_src emacs-lisp
+  (use-package eat
+    :ensure t)
+#+end_src
+** elypy
+#+begin_src emacs-lisp
+  (use-package elpy :ensure t
+    :init (elpy-enable))
+#+end_src
+** emnet
+** erc
+#+begin_src emacs-lisp
+  ;; (global-set-key "\C-cef"
+  ;;                 (lambda () (interactive)
+  ;;                   (erc-tls :server "irc.libera.chat" :port "6697"
+  ;;                            :password "ouske5oevm"
+  ;;                            :nick "qk"
+  ;;                            :client-certificate '("~/auth/qk/qk.key"
+  ;;                                                  "~/auth/qk/qk.crt"))))
+  ;; (setq erc-rename-buffers t)
+  ;; (setq erc-interpret-mirc-color t)
+#+end_src
+** eshell
+#+BEGIN_SRC emacs-lisp
+  (defun eshell-clear-buffer ()
+    "Clear terminal"
+    (interactive)
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (eshell-send-input)))
+  (add-hook 'eshell-mode-hook
+            '(lambda()
+               (local-set-key (kbd "C-l") 'eshell-clear-buffer)))
+
+#+END_SRC
+** god-mode
+#+begin_src emacs-lisp
+  (use-package god-mode :ensure t
+    :config
+    (global-set-key (kbd "<escape>") #'god-mode-all))
+  god-exempt-major-modes
+#+end_src
+** hs-minor-mode
+#+begin_src emacs-lisp
+  (load-library "hideshow")
+  (global-set-key (kbd "C-+") 'hs-toggle-hiding)
+#+end_src
+** ido
+#+BEGIN_SRC emacs-lisp
+  (setq ido-enable-flex-matching nil)
+  (setq ido-create-new-buffer 'always)
+  (setq ido-everywhere t)
+  (setq ido-auto-merge-work-directories-length -1)
+  (setq ido-default-buffer-method 'selected-window)
+  (ido-mode 1)
+#+END_SRC
+
+** lua
+#+begin_src emacs-lisp
+  (add-hook 'comint-mode-hook
+            '(lambda ()
+               (local-unset-key (kbd "C-l"))
+               (local-set-key   (kbd "C-l")
+                                'comint-clear-buffer)))
+#+end_src
+** magit
+#+begin_src emacs-lisp
+  (use-package magit :ensure t)
+#+end_src
+** move-line
+#+begin_src emacs-lisp
+  (use-package move-text :ensure t
+    :config
+    (global-set-key (kbd "M-P") #'move-text-up)
+    (global-set-key (kbd "M-N") #'move-text-down))
+#+end_src
+** pdf-tools
+#+begin_src emacs-lisp
+  (use-package pdf-tools :ensure t
+    :config
+    (setq pdf-view-resize-factor 1.01)
+    (setq pdf-view-midnight-colors (cons "#ffffff"
+                                         "#190a0f"))
+    (add-hook 'pdf-view-mode-hook #'(lambda () (goto-last-visited-page)))
+    (add-hook 'pdf-view-after-change-page-hook #'(lambda () (write-current-page)))
+    (defun pdfh-write-number-to-file (file-path number)
+      "Write the given number to the specified file, overwriting any previous content."
+      (with-temp-buffer
+        (insert (number-to-string number))
+        (write-region (point-min) (point-max) file-path nil 'no-message)))
+    (defun pdfh-read-number-from-file (file-path)
+      "Read a single number from a file and store it in a variable."
+      (let ((number-variable nil))
+        (with-temp-buffer
+          (insert-file-contents file-path) ; Insert the file contents into the buffer
+          ;; Use a regular expression to search for a number (change the regex as needed)
+          (when (re-search-forward "\\b[0-9]+\\b" nil t)
+            (setq number-variable (string-to-number (match-string 0)))))
+        number-variable))
+    (defun pdfh-create-file-with-dirs (file-path)
+      "Create a file along with all the necessary directories if they don't exist."
+      (unless (file-exists-p file-path)
+        (make-directory (file-name-directory file-path) t)
+        (with-temp-buffer
+          (write-file file-path))))
+    (defun pdfh-create-file-if-needed (path)
+      "creates the history path if it doesn't exists"
+      (unless (file-exists-p path)
+        (pdfh-create-file-with-dirs path)
+        (write-number-to-file path 0)))
+    (defun pdfh-get-path (file-name)
+      (format "%s/.cache/pdf-tools-hist%s" (getenv "HOME") file-name))
+    (defun goto-last-visited-page ()
+      (interactive)
+      (let ((path (pdfh-get-path (buffer-file-name))))
+        (pdfh-create-file-if-needed path)
+        (pdf-view-goto-page (pdfh-read-number-from-file path))))
+    (defun write-current-page ()
+      (interactive)
+      (let ((current-page (pdf-view-current-page))
+            (path (pdfh-get-path (buffer-file-name))))
+        (pdfh-create-file-if-needed path)
+        (pdfh-write-number-to-file path current-page)))
+
+    ;;page rember
+    (add-hook 'pdf-view-mode-hook #'(lambda () (display-line-numbers-mode -1)))
+    (add-hook 'pdf-view-mode-hook #'pdf-view-midnight-minor-mode)
+    (pdf-tools-install))
+
+#+end_src
+** rainbow-delim
+#+begin_src emacs-lisp
+  (use-package rainbow-delimiters
+    :ensure t
+    :config
+    (add-hook 'prog-mode-hook #'rainbow-delimiters-mode-enable)
+    (add-hook 'geiser-repl-mode-hook #'rainbow-delimiters-mode-enable))
+#+end_src
+** rainbow-mode
+#+begin_src emacs-lisp
+  (use-package rainbow-mode :ensure t)
+#+end_src
+** rust
+*** rustic
+#+begin_src emacs-lisp
+  (setq rustic-lsp-setup-p nil)
+  (use-package rustic
+    :ensure
+    :config
+    (setq rustic-lsp-client 'eglot)
+    (setq rustic-format-on-save nil))
+#+end_src
+** scheme
+*** paredit
+#+BEGIN_SRC emacs-lisp
+  (defun my-pare-RET ()
+    "use return correctly in paredit"
+    (interactive)
+    (if (equal major-mode 'geiser-repl-mode)
+        (geiser-repl-maybe-send)
+      (paredit-RET)))
+  (use-package paredit
+    :ensure t
+    :config
+    :bind (:map paredit-mode-map
+                ("C-j" . paredit-RET)
+                ("RET" . my-pare-RET)
+                ("M-s" . avy-goto-char)
+                ("M-q" . avay-pop-mark)))
+
+  (add-hook 'scheme-mode-hook #'enable-paredit-mode)
+  (add-hook 'lisp-mode-hook   #'enable-paredit-mode)
+  (add-hook 'geiser-mode-hook #'enable-paredit-mode)
+  (add-hook 'emacs-lisp-mode-hook  #'enable-paredit-mode)
+  (add-hook 'clojure-mode-hook #'enable-paredit-mode)
+  (add-hook 'cider-mode-hook #'enable-paredit-mode)
+  (add-hook 'cider-repl-mode-hook #'enable-paredit-mode)
+  (defalias 'paredit-splice-sexp 'avy-goto-char)
+#+END_SRC
+*** geiser
+#+BEGIN_SRC emacs-lisp
+  (use-package geiser-guile
+    :ensure t
+    :config
+    ;;(add-hook 'geiser-mode-hook (lambda () (setq scheme-mode)))
+    (add-hook 'scheme-mode-hook #'geiser-mode)
+    (add-hook 'geiser-repl-mode-hook #'enable-paredit-mode)
+    (add-hook 'geiser-repl-mode-hook
+              '(lambda ()
+                 (local-unset-key (kbd "C-l"))
+                 (local-set-key (kbd "C-l")
+                                'geiser-repl-clear-buffer)))
+    (setq geiser-guile-binary "~/.guix-profile/bin/guile")
+    (setq geiser-guile-load-init-file-p t))
+#+END_SRC
+*** prettier
+#+begin_src emacs-lisp
+  (add-hook 'scheme-mode-hook
+            (lambda ()
+              (mapcar (lambda (e)
+                        (push e prettify-symbols-alist))
+                      '(("match-let" . ?ψ)
+                        ("match-let*". ?Θ)
+                        ("match"     . ?Ψ)
+                        ("lambda*"   . ?Λ)))))
+  (add-hook 'geiser-repl-mode-hook
+            (lambda ()
+              (mapcar (lambda (e)
+                        (push e prettify-symbols-alist))
+                      '(("match-let" . ?ψ)
+                        ("match-let*". ?Θ)
+                        ("match"     . ?Ψ)
+                        ("lambda*"   . ?Λ)))))
+#+end_src
+*** misc
+#+begin_src emacs-lisp
+  (modify-syntax-entry ?| "w" scheme-mode-syntax-table)
+  (setq default-directory "/home/quasikote")
+#+end_src
+** strainght
+#+begin_src emacs-lisp
+  ;; (defvar bootstrap-version)
+  ;; (let ((bootstrap-file
+  ;;        (expand-file-name
+  ;;         "straight/repos/straight.el/bootstrap.el"
+  ;;         (or (bound-and-true-p straight-base-dir)
+  ;;             user-emacs-directory)))
+  ;;       (bootstrap-version 7))
+  ;;   (unless (file-exists-p bootstrap-file)
+  ;;     (with-current-buffer
+  ;;         (url-retrieve-synchronously
+  ;;          "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+  ;;          'silent 'inhibit-cookies)
+  ;;       (goto-char (point-max))
+  ;;       (eval-print-last-sexp)))
+  ;;   (load bootstrap-file nil 'nomessage))
+#+end_src
+
+** tree-sitter
+#+begin_src emacs-lisp
+  (use-package tree-sitter-langs :ensure t)
+  (use-package tree-sitter
+    :ensure t
+    :config
+    (global-tree-sitter-mode)
+    (add-hook 'tree-sitter-mode-hook #'tree-sitter-hl-mode))
+
+#+end_src
+** visual-fill-cl
+#+begin_src emacs-lisp
+  (use-package visual-fill-column
+    :ensure
+    :config (setq visual-fill-column-center-text t
+                  visual-fill-column-width 600))
+#+end_src
+** vundo
+#+begin_src emacs-lisp
+  (use-package vundo :ensure t
+    :config (global-set-key (kbd "C-c r") #'vundo))
+#+end_src
+** web-mode
+#+begin_src emacs-lisp
+  (use-package web-mode
+    :ensure t
+    :mode
+    (("\\.phtml\\'" . web-mode)
+     ("\\.php\\'" . web-mode)
+     ("\\.tpl\\'" . web-mode)
+     ("\\.[agj]sp\\'" . web-mode)
+     ("\\.as[cp]x\\'" . web-mode)
+     ("\\.erb\\'" . web-mode)
+     ("\\.mustache\\'" . web-mode)
+     ("\\.djhtml\\'" . web-mode)
+     ("\\.svelte\\'" . web-mode))
+    :config
+    (setq web-mode-engines-alist
+          '(("svelte" . "\\.svelte\\'"))))
+  (use-package company-web :ensure t)
+  (add-hook 'web-mode-hook (lambda ()
+                             (set (make-local-variable 'company-backends) '(company-web-html company-files company-css))
+                             (company-mode t)))
+#+end_src
+** which-key
+#+BEGIN_SRC emacs-lisp
+  (use-package which-key
+    :ensure t
+    :init (which-key-mode))
+#+END_SRC
+** yasnippet
+#+begin_src emacs-lisp
+  (use-package yasnippet
+    :ensure t
+    :config
+    (add-hook 'c-mode-hook 'yas-minor-mode)
+    (add-hook 'c++-mode-hook 'yas-minor-mode))
+#+end_src
+* gdb
+#+begin_src emacs-lisp
+  (defun trash (&rest args)(interactive))
+  (defalias 'gdb-display-source-buffer 'trash)
+  (defun open-gdb-frames ()
+    (interactive)
+    (gdb-frame-breakpoints-buffer)
+    (gdb-frame-stack-buffer)
+    (gdb-frame-io-buffer))
+#+end_src
+* org-mode
+#+begin_src emacs-lisp
+  (require 'org-tempo)
+  (setq org-image-actual-width nil)
+#+end_src
+** agenda
+#+begin_src emacs-lisp
+  ;; (setq org-agenda-files '("~/denote" "~/today.org"))
+  (setq org-agenda-restore-windows-after-quit t)
+#+end_src
+** tables
+#+begin_src emacs-lisp
+  (add-hook 'org-mode-hook '(lambda () (local-set-key (kbd "s-TAB") 'org-table-previous-field)))
+#+end_src
+** org-bullets
+#+BEGIN_SRC emacs-lisp
+  (use-package org-bullets
+    :ensure t
+    :config
+    (add-hook 'org-mode-hook #'(lambda () (org-bullets-mode)))
+    (add-hook 'org-mode-hook #'(lambda () (org-indent-mode)))
+    (setq org-bullets-bullet-list '("⬤" "⦿︎" "●︎" "◉" "◎︎" "◯︎" "○" "▶" "▷")))
+#+END_SRC
+** org-visuals-line-mode
+#+begin_src emacs-lisp
+  (add-hook 'org-mode-hook (lambda () (visual-line-mode)))
+#+end_src
+** keybinds
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-c l") 'org-store-link)
+  (global-set-key (kbd "C-c a") 'org-agenda)
+  (global-set-key (kbd "C-c c") 'org-capture)
+#+end_src
+** org-clocks
+#+begin_src emacs-lisp
+  (setq org-clock-persist 'history)
+  (org-clock-persistence-insinuate)
+#+end_src
+** org-present
+#+begin_src emacs-lisp
+  (use-package org-present :ensure t)
+
+  (defun my/org-present-start ()
+    (setq visual-fill-column-center-text t)
+    (visual-fill-column-mode 1)
+    (visual-line-mode 1))
+
+  (defun my/org-present-end ()
+    (visual-fill-column-mode 0)
+    (visual-line-mode 0))
+
+  (add-hook 'org-present-mode-hook 'my/org-present-start)
+  (add-hook 'org-present-mode-quit-hook 'my/org-present-end)
+
+  (defun my/org-present-prepare-slide (buffer-name heading)
+    ;; Show only top-level headlines
+    (org-overview)
+
+    ;; Unfold the current entry
+    (org-show-entry)
+
+    ;; Show only direct subheadings of the slide but don't expand them
+    (org-show-children))
+  (add-hook 'org-present-after-navigate-functions 'my/org-present-prepare-slide)
+#+end_src
+** src-blocks
+#+begin_src emacs-lisp
+  (setq org-src-window-setup 'split-window-below)
+#+end_src
+*** scheme
+#+begin_src emacs-lisp
+  (org-babel-do-load-languages 'org-babel-load-languages
+                               '((scheme . t)))
+#+end_src
+* looks
+** ui
+#+begin_src emacs-lisp
+  (global-display-line-numbers-mode)
+  (set-frame-parameter nil 'alpha-background 85)
+  (set-frame-parameter (selected-frame) 'alpha (cons 100 100))
+  (add-to-list 'default-frame-alist '(alpha-background . 80))
+  (add-to-list 'default-frame-alist '(alpha . (100 . 100)))
+  (global-hl-line-mode t)
+  (tool-bar-mode -1)
+  (menu-bar-mode -1)
+  (scroll-bar-mode -1)
+#+end_src
+*** themes
+#+begin_src emacs-lisp
+  (add-to-list 'custom-theme-load-path "~/emacs-themes")
+  (use-package gotham-theme  :ensure t)
+  (use-package modus-themes  :ensure t)
+  (use-package ef-themes     :ensure t)
+  (load-theme 'ef-cherie)
+#+end_src
+
+** columns
+#+begin_src emacs-lisp
+  (setq fill-column 120)
+  (add-hook 'find-file-hook #'display-fill-column-indicator-mode)
+#+end_src
+** modeline
+#+begin_src emacs-lisp
+  (defvar-local my-major-mode '(:eval (propertize (symbol-name major-mode) 'face 'shadow)))
+  (put 'my-major-mode 'risky-local-variable t)
+#+end_src
+* misc
+#+begin_src emacs-lisp
+  (defun indent-all ()
+    (interactive)
+    (indent-region (buffer-end -1) (buffer-end 1)))
+  (global-set-key (kbd "C-c i" ) 'indent-all)
+  (global-prettify-symbols-mode)
+  (global-set-key (kbd "C-x C-z") 'run-guile)
+  (global-set-key (kbd "C-x C-b") 'bs-show)
+  (global-set-key (kbd "C-x j") #'switch-to-prev-buffer)
+  (global-unset-key (kbd "C-c C-'"))
+  (global-unset-key (kbd "C-z"))
+  (global-set-key (kbd "C-v") 'scroll-up-line)
+  (global-set-key (kbd "M-v") 'scroll-down-line)
+  (global-set-key (kbd "M-s") 'avy-goto-char)
+  (global-set-key (kbd "C-=") 'hs-toggle-hiding)
+  (global-set-key (kbd "C-+") 'hs-hide-all)
+  (global-set-key (kbd "C-x C-c") #'delete-frame)
+  ;;(define-key paredit-mode-map (kbd "RET") 'my-pare-RET)
+  ;;(define-key paredit-mode-map (kbd "C-j") 'paredit-C-j)
+  (add-hook 'prog-mode-hook #'hs-minor-mode)
+  (add-hook 'fundamental-mode #'electric-pair-mode)
+  (setq make-backup-files nil)
+  (setq scroll-conservatively 100)
+  (setq ring-bell-function 'ignore)
+  (setq make-backup-file nil)
+  (setq auto-save-defualt nil)
+  (defalias 'yes-or-no-p 'y-or-n-p)
+#+end_src
+** c stuff
+#+begin_src emacs-lisp
+
+#+end_src
+** some hooks
+#+begin_src emacs-lisp
+  (add-hook 'before-save-hook #'whitespace-cleanup)
+  (modify-syntax-entry ?| "w")
+#+end_src
+** font
+#+begin_src emacs-lisp
+  (set-fontset-font "fontset-default"
+                    (cons (decode-char 'ucs #x0370) (decode-char 'ucs #x03FF))
+                    "Monaco APPL")
+#+end_src
+* macros
+#+begin_src emacs-lisp
+  (fset 'ender
+        (kmacro-lambda-form [?\C-x ?r ?m ?e ?n ?d return] 0 "%d"))
+  ;;(global-set-key (kbd "C-c C-n") 'ender)
+  (global-set-key (kbd "C-c 9")   'ender)
+  (global-set-key (kbd "C-c 8") (lambda ()
+                                  (interactive)
+                                  (bookmark-jump "end")))
+  (defalias 'auto-ffi
+    (kmacro "C-x C-r p r o j / a u t o - f f i RET s r c RET p p . s c RET C-x 3 C-u 5 0 C-x { C-u 1 0 C-x { C-u 5 C-x { M-o C-x C-r p a r s e RET C-x 3 C-+ M-o d C-u 5 C-x { C-u 1 0 C-x } C-u 5 C-x } C-x C-r a u t o RET C-n C-x 2 M-o a C-x 2 C-x g M-o a C-u 1 0 C-x ^ M-o f C-u 1 0 C-x ^"))
+  (defalias 'caspianed-ctrl
+    (kmacro "C-u M-x e s h e l l RET c d SPC p r o j / c a s p i a n e d RET r m SPC s o c k ; SPC . / r u n . s c m SPC d e b u g SPC s o c k RET C-x 2 M-o C-x 3 M-x C-g C-u C-x g RET q M-o d C-x b m a g i t : SPC c a s p i a n e d RET M-x g e i <tab> SPC c o n n <tab> SPC l o c a <tab> RET s o c k RET C-<tab> M-o a C-x 2 M-o s C-x C-r <backspace> p u b RET s t y RET"))
+  (defalias 'caspianed
+    (kmacro "C-x C-r p r j <backspace> o j / C-c c a s RET s r c RET s k e RET C-x 3 M-o C-x C-r m a p RET C-x 2 M-o d C-x C-r u t i RET C-x t 2 C-x C-r p a RET h o m RET C-x 3 M-o C-x C-r r e s RET C-x 2 M-o d C-x C-r c o n RET M-o a C-x 2 M-o s C-x C-r l o g i RET C-<tab> M-o a C-x 2 M-o s C-x C-r <backspace> p u b RET s t y RET"))
+  (defalias 'kd
+    (kmacro "C-d M-x d e l e t e - h i <backspace> o r i <tab> RET C-i"))
+  (fset 'kd (symbol-function 'kd))
+
+  (global-set-key (kbd "M-\\")
+                  'kd)
+
+#+end_src
+* languages
+** c-like
+#+begin_src emacs-lisp
+  (add-hook 'c-mode-common-hook 'electric-pair-local-mode)
+  (add-hook 'rust-mode-hook     'electric-pair-local-mode)
+  (setq-default c-basic-offset 8)
+  ;; (add-hook 'c-mode-common-hook #'(lambda () (local-set-key (kbd "C-c h") 'eglot-code-actions)))
+#+end_src
+** ocaml
+#+begin_src emacs-lisp
+  (add-hook 'tuareg-mode-hook #'merlin-mode)
+  (add-hook 'caml-mode-hook #'merlin-mode)
+  (add-hook 'tuareg-mode-hook (lambda() (setq tuareg-mode-name  "🐪")))
+  (add-hook 'tuareg-mode-hook (lambda() (when (functionp 'prettify-symbols-mode) (prettify-symbols-mode))))
+  (add-hook 'tuareg-mode-hook #'electric-pair-local-mode)
+  (add-hook 'caml-mode-hook #'electric-pair-local-mode)
+#+end_src
+** clojure
+#+begin_src emacs-lisp
+  (use-package clojure-mode :ensure t)
+  (use-package cider :ensure t
+    :config
+    (add-hook 'cider-repl-mode-hook '(lambda ()
+                                       (local-unset-key (kbd "C-l"))
+                                       (local-set-key (kbd "C-l")
+                                                      'cider-repl-clear-buffer))))
+  (use-package inf-clojure :ensure t)
+
+#+end_src
+** html
+#+begin_src emacs-lisp
+  (add-to-list 'auto-mode-alist '("\\.html\\'" . sgml-mode))
+  (add-hook 'sgml-mode-hook #'whitespace-mode)
+  (add-hook 'sgml-mode-hook #'electric-pair-local-mode)
+  (add-hook 'sgml-mode-hook #'(lambda () (local-set-key (kbd "M-o") 'ace-window)))
+#+end_src
+* eldoc
+#+begin_src emacs-lisp
+  (setq eldoc-idle-delay 5)
+#+end_src

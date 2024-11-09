@@ -187,6 +187,7 @@
 ** magit
 #+begin_src emacs-lisp
   (use-package magit :ensure t)
+  (magit-wip-mode)
 #+end_src
 ** move-line
 #+begin_src emacs-lisp
@@ -593,9 +594,11 @@
   (defalias 'kd
     (kmacro "C-d M-x d e l e t e - h i <backspace> o r i <tab> RET C-i"))
   (fset 'kd (symbol-function 'kd))
-
-  (global-set-key (kbd "M-\\")
-                  'kd)
+  (global-set-key (kbd "M-\\") 'kd)
+  (defalias 'my-xb
+     (kmacro "C-x b <return>"))
+  (fset 'my-xb (symbol-function 'my-xb))
+  (global-set-key (kbd "C-x j") 'my-xb)
 
 #+end_src
 * languages

@@ -186,7 +186,16 @@
 #+end_src
 ** magit
 #+begin_src emacs-lisp
-  (use-package magit :ensure t)
+  (defun magit-display-buffer-same-window (buffer)
+    "Display BUFFER in the selected window."
+    (display-buffer
+     buffer (if (with-current-buffer buffer
+                  (derived-mode-p))
+                '(nil (inhibit-same-window . t))
+              '(display-buffer-same-window))))
+  (use-package magit :ensure t
+    :config
+    (setq magit-display-buffer-function #'magit-display-buffer-same-window))
   (magit-wip-mode)
 #+end_src
 ** move-line

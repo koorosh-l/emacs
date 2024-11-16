@@ -498,7 +498,9 @@
 *** scheme
 #+begin_src emacs-lisp
   (org-babel-do-load-languages 'org-babel-load-languages
-                               '((scheme . t)))
+                               '((scheme . t)
+                                 (shell  . t)
+                                 (python . t)))
 #+end_src
 * looks
 ** ui
@@ -636,6 +638,10 @@
   (add-hook 'sgml-mode-hook #'whitespace-mode)
   (add-hook 'sgml-mode-hook #'electric-pair-local-mode)
   (add-hook 'sgml-mode-hook #'(lambda () (local-set-key (kbd "M-o") 'ace-window)))
+#+end_src
+** god forsaken python
+#+begin_src emacs-lisp
+  (add-hook 'python-mode-hook #'electric-pair-local-mode)
 #+end_src
 * eldoc
 #+begin_src emacs-lisp

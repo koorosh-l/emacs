@@ -186,6 +186,7 @@
 #+end_src
 ** magit
 #+begin_src emacs-lisp
+  ;; (derived-mode-p 'magit-diff-mode 'magit-process-mode)
   (defun magit-display-buffer-same-window (buffer)
     "Display BUFFER in the selected window."
     (display-buffer
@@ -510,6 +511,12 @@
                                '((scheme . t)
                                  (shell  . t)
                                  (python . t)))
+#+end_src
+** tags
+#+begin_src emacs-lisp
+  (setq org-tag-faces
+        '(("broken" . (:foreground "white" :background "red"   :weight bold))
+          ("works"  . (:foreground "white" :background "green" :weight bold))))
 #+end_src
 * looks
 ** ui
